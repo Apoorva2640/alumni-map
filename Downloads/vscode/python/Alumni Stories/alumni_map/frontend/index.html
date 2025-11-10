@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Alumni Stories Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #map {
+            height: 60vh;
+            width: 100%;
+            margin: 0 auto 32px auto;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px #dde;
+            min-height: 350px;
+            background: #eaf3ff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="text-align:center;margin-bottom:1.4rem;">Alumni Stories Interactive Map</h1>
+    <div id="map"></div>
+    <div id="mapInfoTip" style="text-align:center;margin:9px 0 0 0;color:#678;font-size:1.08rem;">
+        💡 Tip: Click any pin or blue number to see alumni at that spot.<br>
+        Scroll down to add your own story!
+    </div>
+    <div id="noAlumniMsg" style="display:none;text-align:center;font-size:1.18rem;color:#886aa3;margin-top:32px;">
+        No alumni found matching your criteria!
+    </div>
+
+    <!-- SEARCH BAR (add above filter bar) -->
+    <div style="display:flex;justify-content:center;margin-top:1.6rem;">
+        <input type="text" id="searchBar" placeholder="Search here..."
+            style="width:295px;font-size:1.17rem;padding:12px 16px;border-radius:9px;border:1px solid #dae;background:#fafaff;box-shadow:0 0 2px #e3e7ed;">
+    </div>
+    <!-- Filter Bar -->
+    <div class="filter-bar" style="display:flex;justify-content:center;gap:18px;margin:2rem 0;">
+        <input type="text" id="cityFilter" placeholder="Filter by city..."
+            style="padding:12px 16px;font-size:1.18rem;border-radius:9px;border:1px solid #cdd;font-weight:500;min-width:128px;">
+        <select id="yearFilter"
+            style="padding:12px 16px;font-size:1.18rem;border-radius:9px;border:1px solid #cdd;min-width:118px;">
+            <option value="">All Years</option>
+        </select>
+        <select id="companyFilter"
+            style="padding:12px 16px;font-size:1.18rem;border-radius:9px;border:1px solid #cdd;min-width:118px;">
+            <option value="">All Companies</option>
+        </select>
+        <select id="topicFilter"
+            style="padding:12px 16px;font-size:1.18rem;border-radius:9px;border:1px solid #cdd;min-width:120px;">
+            <option value="">All Topics</option>
+            <option value="AI">AI</option>
+            <option value="Business">Business</option>
+            <option value="Research">Research</option>
+            <option value="Design">Design</option>
+            <option value="Teaching">Teaching</option>
+        </select>
+        <button onclick="resetFilters()"
+            style="padding:12px 24px;font-size:1.15rem;border-radius:9px;border:1px solid #cdd;background:#f8faff;">
+            Reset Filters
+        </button>
+        <button id="exportCsvBtn"
+            style="padding:12px 24px;font-size:1.15rem;border-radius:9px;background:#edeaff;color:#391d4f;border:none;font-weight:600;box-shadow:0 1px 4px #def;">
+            Export to CSV
+        </button>
+    </div>
+
+
+    <!-- Alumni Story Form -->
+    <form id="storyForm" enctype="multipart/form-data"
+        style="margin:2rem auto;max-width:475px;padding:2.5rem 2rem 2rem 2rem;background:#f8faff;border-radius:16px;box-shadow:0 2px 9px #dde;font-family:Segoe UI,sans-serif;">
+        <h2 style="text-align:center;margin-bottom:1.75rem;">Add Your Alumni Story</h2>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Name
+            <input type="text" id="name" required
+                style="width:100%;height:45px;font-size:1.1rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Graduation Year
+            <input type="text" id="year" required placeholder="e.g., 2027 or 2023-2027"
+                style="width:100%;height:45px;font-size:1.1rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            City
+            <input type="text" id="city" required
+                style="width:100%;height:45px;font-size:1.09rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Latitude
+            <input type="number" id="lat" step="any" required
+                style="width:100%;height:45px;font-size:1.09rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Longitude
+            <input type="number" id="lng" step="any" required
+                style="width:100%;height:45px;font-size:1.09rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Company
+            <input type="text" id="company" required
+                style="width:100%;height:45px;font-size:1.09rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Role
+            <input type="text" id="role" required
+                style="width:100%;height:45px;font-size:1.09rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Story (Optional)
+            <textarea id="story" rows="4"
+                style="width:100%;min-height:80px;font-size:1.1rem;padding:12px 9px;border-radius:7px;border:1px solid #bbc;"></textarea>
+        </label>
+        <label style="display:block;margin-bottom:23px;font-weight:bold;font-size:1.09rem;">
+            Contact (LinkedIn or Email)
+            <input type="text" id="link"
+                style="width:100%;height:45px;font-size:1.09rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <label style="display:block;margin-bottom:22px;font-weight:bold;font-size:1.09rem;">
+            Photo (Optional)
+            <input type="file" id="photo" accept="image/*"
+                style="width:100%;height:45px;font-size:1.1rem;padding:11px 8px;border-radius:7px;border:1px solid #bbc;">
+        </label>
+        <button type="submit"
+            style="margin-top:10px;width:100%;height:50px;font-size:1.18rem;font-weight:bold;background:#3366ff;color:#fff;border:none;border-radius:9px;">Add
+            to Map</button>
+        <div id="successMsg" style="display:none;margin-top:12px;">Story submitted!</div>
+    </form>
+    <div style="height: 30vh; background: #f2f2f2; text-align: center;">
+        <p>Scroll to see more content on this page!</p>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="map.js"></script>
+    <!-- Image Modal (inserted before </body>) -->
+    <div id="imgModal"
+        style="display:none;position:fixed;z-index:2500;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.68);justify-content:center;align-items:center;">
+        <span onclick="closeBigImage()"
+            style="position:absolute;top:24px;right:32px;font-size:2.6rem;color:#fff;cursor:pointer;font-weight:bold;">&times;</span>
+        <img id="imgModalImg" src=""
+            style="max-width:78vw;max-height:78vh;border-radius:18px;box-shadow:0 10px 40px #000b;">
+    </div>
+    <!-- Alumni Export Modal -->
+    <div id="alumniExportModal"
+        style="display:none;position:fixed;z-index:2600;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;">
+        <div
+            style="background:#fff;padding:28px 36px;border-radius:12px;max-width:600px;width:90vw;max-height:85vh;overflow:auto;box-shadow:0 5px 30px #333;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h2 style="margin:0;font-size:1.28rem;">Select Alumni to Export</h2>
+                <button onclick="closeAlumniExportModal()"
+                    style="background:none;border:none;font-size:2rem;color:#555;cursor:pointer;">×</button>
+            </div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
+                <select id="modalYearFilter" style="padding:7px 10px;border-radius:7px;border:1px solid #dde;">
+                    <option value="">All Years</option>
+                </select>
+                <select id="modalCompanyFilter" style="padding:7px 10px;border-radius:7px;border:1px solid #dde;">
+                    <option value="">All Companies</option>
+                </select>
+                <select id="modalRoleFilter" style="padding:7px 10px;border-radius:7px;border:1px solid #dde;">
+                    <option value="">All Roles</option>
+                </select>
+                <select id="modalCityFilter" style="padding:7px 10px;border-radius:7px;border:1px solid #dde;">
+                    <option value="">All Cities</option>
+                </select>
+                <input type="text" id="alumniModalSearch" placeholder="Search name/company/city/role..."
+                    style="flex:1;width:135px;padding:7px 10px;border-radius:7px;border:1px solid #dde;">
+            </div>
+            <div id="alumniSelectList"></div>
+            <button onclick="exportSelectedAlumni()"
+                style="margin-top:21px;padding:11px 22px;border-radius:7px;background:#edeaff;color:#20153e;font-weight:600;border:none;box-shadow:0 1px 5px #def;">Export
+                Selected</button>
+        </div>
+    </div>
+
+    <script>
+        function showBigImage(src) {
+            document.getElementById('imgModalImg').src = src;
+            document.getElementById('imgModal').style.display = 'flex';
+        }
+        function closeBigImage() {
+            document.getElementById('imgModal').style.display = 'none';
+            document.getElementById('imgModalImg').src = '';
+        }
+    </script>
+</body>
+
+</html>

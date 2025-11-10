@@ -1,0 +1,87 @@
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 150vh;
+    /* Make page taller */
+}
+
+#map {
+    height: 60vh;
+    /* or 500px or whatever fits */
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px #dde;
+}
+
+
+
+.leaflet-container {
+    border-radius: 14px;
+}
+
+/* Responsive, modern, subtle touch polish */
+@media (max-width: 700px) {
+    #map {
+        height: 36vh !important;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+        margin: 1.2rem 0 !important;
+    }
+
+    form#storyForm {
+        padding: 1.5rem 0.5rem 1.1rem 0.5rem !important;
+        box-shadow: 0 1px 6px #dde;
+    }
+}
+
+/* Filter and button polish */
+.filter-bar input,
+.filter-bar select {
+    transition: box-shadow 0.2s;
+}
+
+.filter-bar input:focus,
+.filter-bar select:focus {
+    box-shadow: 0 0 4px #AAD;
+}
+
+.filter-bar button {
+    background: #f8faff !important;
+    /* Very light lavender/blue, matches your form */
+    color: #382772 !important;
+    font-weight: 600;
+    border: none;
+    border-radius: 9px;
+    box-shadow: 0 1px 6px #dde;
+    opacity: 1 !important;
+    transition: background 0.18s;
+}
+
+.filter-bar button:hover,
+.filter-bar button:active,
+.filter-bar button:focus {
+    background: #e0e7ff !important;
+    /* Just a bit more blue on hover */
+    color: #291478 !important;
+}
+
+/* Custom popups look */
+.leaflet-popup-content {
+    font-family: Segoe UI, Helvetica, Arial, sans-serif;
+    border-radius: 13px !important;
+    min-width: 235px;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 13px !important;
+    box-shadow: 0 4px 30px #dde, 0 1px 2px #bfd inset;
+}
+
+#imgModal {
+    transition: opacity 0.2s;
+}
